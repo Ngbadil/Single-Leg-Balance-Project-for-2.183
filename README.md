@@ -7,6 +7,7 @@ For the time being, everyone will have their own branch they can commit changes 
 Use this the first time you download the project to your computer.
 
 git clone https://github.com/Ngbadil/Single-Leg-Balance-Project-for-2.183.git
+
 cd Single-Leg-Balance-Project-for-2.183
 
 2. Check the current branch and status
