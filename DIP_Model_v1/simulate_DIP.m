@@ -1,16 +1,18 @@
-function [tout, zout, uout] = simulate_DIP(z0,K,z_eq,p,tspan, joint_lim) 
+function [tout, zout, uout] = simulate_DIP(z0,p,tspan, joint_lim, noise, param, freq) 
     %% Perform Dynamic simulation
     t0 = tspan(1); tend = tspan(end);
-    dt = 0.0001;
+    dt = 1/freq;
     num_step = floor(tend/dt);
     tout = linspace(t0, tend, num_step);
     zout = zeros(4,num_step);
     zout(:,1) = z0;
     uout = zeros(2,num_step);
+    motorNoise = getMotorNoise(dt, num_step, noise.motorNoiseLvL, noise.noise_type);
+    [K,~] = lqr_control(z0,[],p,param);
     
     for i=1:num_step-1
         t = tout(i);
-        [dz,u] = dynamics(t, zout(:,i), p, K, z_eq, joint_lim);
+        [dz,u] = dynamics(t, zout(:,i), p, K, joint_lim, motorNoise(:,i), noise.motorNoiseRatio, param);
         zout(:,i+1) = zout(:,i) + dz*dt;
         zout(3:4, i+1) = hip_discrete_contact(zout(:,i+1), p);
         zout(3:4, i+1) = head_discrete_contact(zout(:,i+1), p);
@@ -18,9 +20,35 @@ function [tout, zout, uout] = simulate_DIP(z0,K,z_eq,p,tspan, joint_lim)
     end
 end
 
+%% Noise %%
+function motorNoise = getMotorNoise(dt,N, motorNoiseLvL, noise_type)
+    % Uncorrelated Gaussian noise
+    motorNoise_white = motorNoiseLvL*randn([2,N]);
+    motorNoise = motorNoise_white;
+    
+    if noise_type == 'l' % low-pass-filtered white noise (Peterka 2000 model)
+        H = tf([1],[1 1/80]); % 80 s time constant
+        Hd = c2d(H,dt);
+        [num,den] = tfdata(Hd);
+        motorNoise = filter(num{1},den{1},motorNoise_white')';
+    end
+end
+
 %% Control %%
-function u = lqr_control(z, K, z_eq)
-    u = -K * (z - z_eq);
+function [K_lqr, u_lqr] = lqr_control(z, K, p, param)
+    Q = param.Q;
+    R = param.R;
+    q_eq = [0; 0]*pi/180;
+    Dq_eq = [0; 0];
+    z_eq = [q_eq; Dq_eq];
+
+    if isempty(K) % finding K_lqr for u = -Kx
+        [A_lin, B_lin] = linearization_DIP(z_eq, [0;0], p);
+        K_lqr = lqr(A_lin,B_lin,Q,R);
+    else
+        K_lqr = K;
+    end
+    u_lqr = -K_lqr*(z-z_eq);
 end
 
 function u = hip_joint_constraint(z, joint_lim)
@@ -38,13 +66,26 @@ function u = hip_joint_constraint(z, joint_lim)
 end
 
 %% Dynamics %%
-function [dz,u] = dynamics(t,z,p,K,z_eq, joint_lim)
+function [dz,u] = dynamics(t,z,p, K, joint_lim, motorNoise, motorNoiseRatio, param)
+
+    if isempty(motorNoise)
+        motorNoise = 10*randn(length(q),1);
+    end
+    if isempty(motorNoiseRatio)
+        motorNoiseRatio = 1.6; % ankle:hip noise ratio
+    end
+
     % Get mass matrix
     A = A_DIP(z,p);
     
     % Compute Controls
-    u = lqr_control(z, K, z_eq);
-    u = [0; 0];
+    [~,u] = lqr_control(z, K, p, param);
+    % u = [0; 0];
+
+    % Input Noise
+    u_noise = motorNoise;
+    u_noise(1) = motorNoiseRatio*u_noise(1);
+    u = u + u_noise;
 
     % Hip Joint Limit Constraint
     u = u + hip_joint_constraint(z,joint_lim);

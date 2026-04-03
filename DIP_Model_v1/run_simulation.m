@@ -3,31 +3,22 @@ clear all; close all; clc;
 % setpath    % add AutoDerived, Modeling, Visualization folders to Matlab path
 
 %% Parameters and Initial Conditions
-p   = parameters();                  % DIP parameters (no joint_lim or ground needed)
+p   = parameters();                 % DIP parameters (no joint_lim or ground needed)
 z_eq = [0; 0; 0; 0];                % upright equilibrium [th1, th2, dth1, dth2]
 u_eq = [0; 0];
 z0   = [0.1; 0.05; 0; 0];           % small perturbation from upright, at rest
 
-tf   = 2;                            % simulation duration (s)
+tf   = 50;                          % simulation duration (s)
 
-%% Compute LQR Gain
-[A_num, B_num] = linearization_DIP(z_eq, u_eq, p);
+noise.motorNoiseLvL = 100;            % noise magnitude
+noise.motorNoiseRatio = 1.6;        % ankle:hip noise ratio
+noise.noise_type = 'l';             % 'w' for gaussian white noise, 'l' for low pass (more noticeable)
 
-% Sanity check — should see two eigenvalues with positive real parts
-disp('Open-loop eigenvalues:')
-disp(eig(A_num))
-
-% Bryson's rule starting point:
-% Q(i,i) = 1/max_acceptable_error^2, R(j,j) = 1/max_torque^2
-Q_lqr = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
-R_lqr = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
-
-K = lqr(A_num, B_num, Q_lqr, R_lqr);
-disp('LQR gain K:')
-disp(K)
+param.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
+param.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
 
 %% Simulate
-[tout, zout, uout] = simulate_DIP(z0, K, z_eq, p, [0 tf], [-2*pi/3 2*pi/3]);
+[tout, zout, uout] = simulate_DIP(z0, p, [0 tf], [-2*pi/3 2*pi/3], noise, param, 1000);
 
 %% Plot joint angles
 figure(1)
@@ -70,8 +61,28 @@ xlabel('time (s)')
 ylabel('height (m)')
 title('Head height')
 
-%% Animate
+%% Plot Foot Force
+num_steps = size(zout, 2);
+F_O = F_O_DIP(zout, uout, p);
+%F_O = zeros(2, num_steps);
+%for i = 1:num_steps
+%    F_O(:,i) = F_O_DIP(zout(:,i), uout(:,i), p);
+%end
+
 figure(4)
-clf
+subplot(2,1,1)
+plot(tout, F_O(1,:))
+xlabel('time (s)')
+ylabel('Force in x-dir (N)')
+title('Foot Force (x)')
+
+subplot(2,1,2)
+plot(tout, F_O(2,:))
+xlabel('time (s)')
+ylabel('Force in y-dir (N)')
+title('Foot Force (y)')
+
+
+%% Animate
 speed = 0.5;
-animateSol(tout, zout, p)
+animateSol(tout, zout, p, speed)
