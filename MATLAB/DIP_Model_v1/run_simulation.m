@@ -2,13 +2,37 @@ clear all; close all; clc;
 
 % setpath    % add AutoDerived, Modeling, Visualization folders to Matlab path
 
+
+%% Gather information from participants
+
+participants = readtable('table_1_data_deidentified.csv'); %Import participant data using struct
+
+modifiedParticipants = participants; %Create copy of table
+
+modifiedParticipants.Height_in_ = modifiedParticipants.Height_in_*0.0254; %Convert inches to meters
+modifiedParticipants = renamevars(modifiedParticipants,'Height_in_','Height_m'); %Rename table column name
+
+modifiedParticipants.Weight_lb_ = modifiedParticipants.Weight_lb_*0.453592; %Convert lb to kg
+modifiedParticipants = renamevars(modifiedParticipants,'Weight_lb_','Mass_kg_'); %Rename table column name
+
+
 %% Parameters and Initial Conditions
 p   = parameters();                  % DIP parameters (no joint_lim or ground needed)
+
+%Test parameters
+for i = 1:1%size(modifiedParticipants,1)
+    % totalMass_kg, totalHeight_m, gender, plane, theta_rad
+    test = getLumpedParams_DIP_Ypose(modifiedParticipants.Mass_kg_(i),modifiedParticipants.Height_m(i),modifiedParticipants.Gender_1_M_2_F_(i),'frt',pi/4);
+
+    p(1) = test.L1; p(2)=test.L2;p(3) = test.c1; p(4)=test.c2; p(5)=test.m1; p(6)=test.m2; p(7)=test.j1; p(8)=test.j2;
+end
+
 z_eq = [0; 0; 0; 0];                % upright equilibrium [th1, th2, dth1, dth2]
 u_eq = [0; 0];
 z0   = [0.1; 0.05; 0; 0];           % small perturbation from upright, at rest
 
 tf   = 2;                            % simulation duration (s)
+
 
 %% Compute LQR Gain
 [A_num, B_num] = linearization_DIP(z_eq, u_eq, p);
