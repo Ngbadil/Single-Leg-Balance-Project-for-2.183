@@ -40,7 +40,7 @@ git diff
 
 Stage all changed files:
 
-git add .
+git add . (for all files in a folder)
 
 Or stage a specific file:
 
