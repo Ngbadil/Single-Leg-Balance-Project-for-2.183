@@ -1,5 +1,16 @@
-function [tout, zout, uout] = simulate_DIP(z0,p,tspan, joint_lim, noise, param, freq) 
+function [tout, zout, uout] = simulate_DIP(input_struct) 
     %% Perform Dynamic simulation
+    % input struct values
+    p = input_struct.lumped_params;
+    z0 = input_struct.z0;
+    freq = input_struct.simFreq_Hz;
+    tf = input_struct.simDuration_s;
+    tspan = [0,tf];
+    joint_lim = input_struct.joint;
+    noise = input_struct.noise;
+    param = input_struct.controller;
+
+    % set up simulation 
     t0 = tspan(1); tend = tspan(end);
     dt = 1/freq;
     num_step = floor(tend/dt);
@@ -10,6 +21,7 @@ function [tout, zout, uout] = simulate_DIP(z0,p,tspan, joint_lim, noise, param, 
     motorNoise = getMotorNoise(dt, num_step, noise.motorNoiseLvL, noise.noise_type);
     [K,~] = lqr_control(z0,[],p,param);
     
+    % simulate for each timestep
     for i=1:num_step-1
         t = tout(i);
         [dz,u] = dynamics(t, zout(:,i), p, K, joint_lim, motorNoise(:,i), noise.motorNoiseRatio, param);
