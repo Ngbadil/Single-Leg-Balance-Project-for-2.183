@@ -119,6 +119,8 @@ matlabFunction(r,'file',['r_' name],'vars',{z p});
 matlabFunction(dr,'file',['dr_' name],'vars',{z p});
 matlabFunction(J_rA,  'file', ['J_rA_'  name], 'vars', {z p});
 matlabFunction(J_rB,  'file', ['J_rB_'  name], 'vars', {z p});
+matlabFunction(J_CoM,  'file', ['J_CoM_'  name], 'vars', {z p});
+matlabFunction(DJ_CoM,  'file', ['DJ_CoM_'  name], 'vars', {z p});
 matlabFunction(F_O,  'file', ['F_O_'  name], 'vars', {z u p});
 
 
