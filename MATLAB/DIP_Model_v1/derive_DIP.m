@@ -2,14 +2,18 @@ clear
 name = 'DIP';
 
 % Define variables for time, generalized coordinates + derivatives, controls, and parameters 
-syms t th1 dth1 ddth1 th2 dth2 ddth2 I1 I2 l_OA l_AB l_Om1 l_Am2 m1 m2 tau1 tau2 Fx Fy g real; 
+% syms t th1 dth1 ddth1 th2 dth2 ddth2 I1 I2 l_OA l_AB l_Om1 l_Am2 m1 m2 tau1 tau2 Fx Fy g real; 
+syms t th1 dth1 ddth1 th2 dth2 ddth2 j1 j2 L1 L2 c1 c2 m1 m2 tau1 tau2 Fx Fy real; 
 
 % Group them
 q   = [th1 th2]';      % generalized coordinates
 dq  = [dth1 dth2]';    % first time derivatives (angular velocity)
 ddq = [ddth1 ddth2]';  % second time derivatives (angular acceleration)
 u   = [tau1 tau2]';     % controls
-p   = [ l_OA; l_AB; l_Om1; l_Am2; m1; m2; I1; I2; g;];        % parameters 
+% p   = [ l_OA; l_AB; l_Om1; l_Am2; m1; m2; I1; I2; g;];        % parameters 
+p = [L1; L2; c1; c2; m1; m2; j1; j2;];
+
+g = 9.81;
 
 % Generate Vectors and Derivatives
 ihat = [1; 0; 0];
@@ -19,10 +23,10 @@ e1hat = sin(th1)*ihat + cos(th1)*jhat;                            % vector of fi
 e2hat = sin(th1 + th2)*ihat + cos(th1 + th2)*jhat;     % vector of second linkage
 
 rO= [0;0;0];                % foot position
-rA = l_OA*e1hat;            % hip position
-rB = rA + l_AB*e2hat;       % head position
-r_m1= l_Om1*e1hat;          % leg CoM position
-r_m2= rA + l_Am2*e2hat;     % torso CoM position
+rA = L1*e1hat;            % hip position
+rB = rA + L2*e2hat;       % head position
+r_m1= c1*e1hat;          % leg CoM position
+r_m2= rA + c2*e2hat;     % torso CoM position
 
 ddt = @(r) jacobian(r,[q;dq])*[dq;ddq]; % a handy anonymous function for taking time derivatives
 
@@ -42,8 +46,8 @@ omega1 = dth1;
 omega2 = dth1 + dth2;
 
 
-T1 = (1/2)*m1 * dot(dr_m1,dr_m1) + (1/2) * I1 * omega1^2;   % Kinetic Energy of Link 1
-T2 = (1/2)*m2 * dot(dr_m2,dr_m2) + (1/2) * I2 * omega2^2;   % Kinetic Energy of Link 2
+T1 = (1/2)*m1 * dot(dr_m1,dr_m1) + (1/2) * j1 * omega1^2;   % Kinetic Energy of Link 1
+T2 = (1/2)*m2 * dot(dr_m2,dr_m2) + (1/2) * j2 * omega2^2;   % Kinetic Energy of Link 2
 
 Vg1 = m1*g*dot(r_m1, jhat);   % Potential Energy  due to Gravity of Link 1
 Vg2 = m2*g*dot(r_m2, jhat);   % Potential Energy  due to Gravity of Link 2
