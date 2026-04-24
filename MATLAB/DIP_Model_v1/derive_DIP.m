@@ -98,9 +98,16 @@ A_lin_sym = simplify([zeros(2),   eye(2);
 B_lin_sym = simplify([zeros(2,2);
                        A_eq \ db_du]);
 
-%% Compute Jacobians for contact with ground
+%% Compute Jacobians
 J_rA = jacobian(rA(1:2),q);
 J_rB = jacobian(rB(1:2),q);
+J_CoM = jacobian(rcm(1:2),q);
+DJ_CoM = reshape( ddt(J_CoM(:)) , size(J_CoM) );
+
+%% Compute Ground Reaction Force with Foot
+F_O = (m1+m2)*(DJ_CoM*dq + J_CoM*ddq + [0; g]);
+ddq_sol = A \ b;
+F_O = simplify(subs(F_O, [ddth1; ddth2], ddq_sol));
 
 %% Turn into functions (faster computations)
 matlabFunction(A,'file',['A_' name],'vars',{z p});
@@ -110,8 +117,11 @@ matlabFunction(B_lin_sym, 'file', ['Blin_' name], 'vars', {p});
 matlabFunction(E,'file',['E_' name],'vars',{z p});
 matlabFunction(r,'file',['r_' name],'vars',{z p});
 matlabFunction(dr,'file',['dr_' name],'vars',{z p});
-matlabFunction(J_rA,  'file', ['J_rA_'  name], 'vars', {z, p});
-matlabFunction(J_rB,  'file', ['J_rB_'  name], 'vars', {z, p});
+matlabFunction(J_rA,  'file', ['J_rA_'  name], 'vars', {z p});
+matlabFunction(J_rB,  'file', ['J_rB_'  name], 'vars', {z p});
+matlabFunction(J_CoM,  'file', ['J_CoM_'  name], 'vars', {z p});
+matlabFunction(DJ_CoM,  'file', ['DJ_CoM_'  name], 'vars', {z p});
+matlabFunction(F_O,  'file', ['F_O_'  name], 'vars', {z u p});
 
 
 

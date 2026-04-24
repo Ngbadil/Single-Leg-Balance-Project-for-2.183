@@ -9,6 +9,7 @@ Use this the first time you download the project to your computer.
 
 git clone https://github.com/Ngbadil/Single-Leg-Balance-Project-for-2.183.git
 
+<<<<<<< HEAD
 2. After cloning enter
 
 git checkout <-- branch name -->
@@ -16,6 +17,13 @@ git checkout <-- branch name -->
 
 
 3. Check the current branch and status
+=======
+
+cd Single-Leg-Balance-Project-for-2.183
+
+
+2. Check the current branch and status
+>>>>>>> Aimee
 This shows which branch you are on and whether you have any uncommitted changes.
 
 
@@ -24,23 +32,39 @@ git status
 git branch
 
 
+<<<<<<< HEAD
 4. Create and switch to your own branch
+=======
+3. Create and switch to your own branch
+>>>>>>> Aimee
 Before making changes, create a new branch so your work stays separate from the main branch.
 
 git switch -c your-branch-name
 
+<<<<<<< HEAD
 6. Make your changes
+=======
+5. Make your changes
+>>>>>>> Aimee
 Edit the files you need in the repository.To see what changed:
 
 git status
 
 git diff
 
+<<<<<<< HEAD
 7. Stage your changes
 
 Stage all changed files:
 
 git add . (for all files in a folder)
+=======
+5. Stage your changes
+
+Stage all changed files:
+
+git add .
+>>>>>>> Aimee
 
 Or stage a specific file:
 

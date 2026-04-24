@@ -31,8 +31,11 @@ z_eq = [0; 0; 0; 0];                % upright equilibrium [th1, th2, dth1, dth2]
 u_eq = [0; 0];
 z0   = [0.1; 0.05; 0; 0];           % small perturbation from upright, at rest
 
-tf   = 2;                            % simulation duration (s)
+tf   = 50;                          % simulation duration (s)
 
+noise.motorNoiseLvL = 100;            % noise magnitude
+noise.motorNoiseRatio = 1.6;        % ankle:hip noise ratio
+noise.noise_type = 'l';             % 'w' for gaussian white noise, 'l' for low pass (more noticeable)
 
 %% Compute LQR Gain
 [A_num, B_num] = linearization_DIP(z_eq, u_eq, p);
@@ -41,17 +44,52 @@ tf   = 2;                            % simulation duration (s)
 disp('Open-loop eigenvalues:')
 disp(eig(A_num))
 
-% Bryson's rule starting point:
-% Q(i,i) = 1/max_acceptable_error^2, R(j,j) = 1/max_torque^2
-Q_lqr = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
-R_lqr = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
+% [Q,R] = evan'sfunction(jsldkja);
+% controller.Q = Q;
+% controller.R = R;
 
-K = lqr(A_num, B_num, Q_lqr, R_lqr);
-disp('LQR gain K:')
-disp(K)
+controller.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
+controller.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
+
+%% Create Input Struct
+% Inputs:
+% input_struct = struct of simulation parameters, including:
+%   'lumped_params'     : struct of lumped parameters for DIP
+%     'l_OA'  : distance from ankle joint to hip joint
+%     'l_AB'  : distance from hip joint to head
+%     'l_Om1' : distance from ankle joint to center of mass of link 1
+%     'l_Am2' : distance from hip joint to center of mass of link 2
+%     'm1'    : mass of leg segment
+%     'm2'    : mass of torso segment
+%     'I1'    : moment of inertia of link 1 about its center of mass
+%     'I2'    : moment of inertia of link 2 about its center of mass
+%     'g'     : gravity
+%   'z0'                : initial position
+%   'simFreq_Hz'        : simulation frequency (Hz), default 1000 Hz
+%   'simDuration_s'     : simulation duration (s), default 60 s
+%   'joint;             : joint limit for hip joint
+%   'noise'             : struct of noise parameters
+%     'motorNoiseLvL_Nm'  : standard deviation of actuator noise (Nm),
+%                         default 10 Nm
+%     'motorNoiseRatio'   : ankle actuator noise / hip actuator noise,
+%                         default 1.6
+%     'noise_type'        : type of noise 'w' for gaussian white noise,
+%                         'l' for low pass (more noticeable)
+%   'controller'        : struct of LQR cost function weighting matrices
+%     'Q'  : 4x4 state penalty matrix, default ones(4)
+%     'R'  : 2x2 control-input penalty matrix, default 1e6*[0.3 0; 0 1/0.3]
+
+input_struct.lumped_params = p;
+input_struct.z0 = z0;
+input_struct.simFreq_Hz = 1000;
+input_struct.simDuration_s = tf;
+input_struct.joint = [-2*pi/3 2*pi/3];
+input_struct.noise = noise;
+input_struct.controller = controller;
 
 %% Simulate
-[tout, zout, uout] = simulate_DIP(z0, K, z_eq, p, [0 tf], [-2*pi/3 2*pi/3]);
+% [tout, zout, uout] = simulate_DIP(z0, p, [0 tf], [-2*pi/3 2*pi/3], noise, controller, 1000);
+[tout, zout, uout] = simulate_DIP(input_struct);
 
 %% Plot joint angles
 figure(1)
@@ -94,8 +132,28 @@ xlabel('time (s)')
 ylabel('height (m)')
 title('Head height')
 
-%% Animate
+%% Plot Foot Force
+num_steps = size(zout, 2);
+F_O = F_O_DIP(zout, uout, p);
+%F_O = zeros(2, num_steps);
+%for i = 1:num_steps
+%    F_O(:,i) = F_O_DIP(zout(:,i), uout(:,i), p);
+%end
+
 figure(4)
-clf
+subplot(2,1,1)
+plot(tout, F_O(1,:))
+xlabel('time (s)')
+ylabel('Force in x-dir (N)')
+title('Foot Force (x)')
+
+subplot(2,1,2)
+plot(tout, F_O(2,:))
+xlabel('time (s)')
+ylabel('Force in y-dir (N)')
+title('Foot Force (y)')
+
+
+%% Animate
 speed = 0.5;
-animateSol(tout, zout, p)
+animateSol(tout, zout, p, speed)

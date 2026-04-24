@@ -1,4 +1,4 @@
-function animateSol(tspan, x, p)
+function animateSol(tspan, x, p, speed)
     figure; clf;
     hold on;
     plot([-1 1],[0 0],'k-'); 
@@ -34,6 +34,6 @@ function animateSol(tspan, x, p)
         set(h_AB,'XData',[rA(1) rB(1)]);
         set(h_AB,'YData',[rA(2) rB(2)]);
 
-        pause(.001)
+        pause((1/speed)*.001)
     end
 end
