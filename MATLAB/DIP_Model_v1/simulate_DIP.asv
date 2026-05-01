@@ -66,8 +66,8 @@ end
 function u = hip_joint_constraint(z, joint_lim)
     Cth = z(2);
     Cthdot = z(4);
-    K_hip = 5000000;
-    D_hip = 1000;
+    K_hip = 50000;
+    D_hip = 100;
 
     u = [0;0];
     if Cth > joint_lim(2)                            % past upper limit
@@ -80,7 +80,7 @@ end
 function u = ankle_joint_constraint(z)
     Cth = z(1);
     Cthdot = z(3);
-    K_ankle = 50000;
+    K_ankle = 5000000;
     D_ankle = 100;
     ankle_lim = [-50*pi/180,30*pi/180];
 
@@ -119,17 +119,15 @@ function [dz,u] = dynamics(t,z,p, K, joint_lim, motorNoise, motorNoiseRatio, par
     u = u + ankle_joint_constraint(z);
 
     % Torque Constraints
-    u1_max = 100;
-    u2_max = 200;
-    if u(1) > u1_max
-        u(1) = u1_max;
-    elseif u(1) <-u1_max
-        u(1) = -u1_max;
+    if u(1) > 90
+        u(1) = 90;
+    elseif u(1) <-90
+        u(1) = -90;
     end
-    if u(2) > u2_max
-        u(2) = u2_max;
-    elseif u(2) <-u2_max
-        u(2) = -u2_max;
+    if u(2) > 180
+        u(2) = 180;
+    elseif u(2) <-180
+        u(2) = -180;
     end
     
     % Get b = Q - V(q,qd) - G(q)

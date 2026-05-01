@@ -113,6 +113,10 @@ F_O = (m1+m2)*(DJ_CoM*dq + J_CoM*ddq + [0; g]);
 ddq_sol = A \ b;
 F_O = simplify(subs(F_O, [ddth1; ddth2], ddq_sol));
 
+%% Get positions
+head_pos = rB(1:2);
+CoM_pos = rcm(1:2);
+
 %% Turn into functions (faster computations)
 matlabFunction(A,'file',['A_' name],'vars',{z p});
 matlabFunction(b,'file',['b_' name],'vars',{z u p});
@@ -126,6 +130,8 @@ matlabFunction(J_rB,  'file', ['J_rB_'  name], 'vars', {z p});
 matlabFunction(J_CoM,  'file', ['J_CoM_'  name], 'vars', {z p});
 matlabFunction(DJ_CoM,  'file', ['DJ_CoM_'  name], 'vars', {z p});
 matlabFunction(F_O,  'file', ['F_O_'  name], 'vars', {z u p});
+matlabFunction(head_pos,'file',['head_pos_' name],'vars',{z p});
+matlabFunction(CoM_pos,'file',['CoM_pos_' name],'vars',{z p});
 
 
 
