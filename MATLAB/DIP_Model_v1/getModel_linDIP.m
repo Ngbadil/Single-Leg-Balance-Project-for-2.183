@@ -30,6 +30,7 @@ function [A_cl,B_cl,C_cl,D_cl] = getModel_linDIP(lumped_params,controller_params
 % Reference: Shiozawa et al. 2021, Appendices 2-4
 % Last updated: 2024-06-18
 
+p = [lumped_params.L1; lumped_params.L2; lumped_params.c1; lumped_params.c2; lumped_params.m1; lumped_params.m2; lumped_params.j1; lumped_params.j2;];
 m1 = lumped_params.m1;
 m2 = lumped_params.m2;
 
@@ -41,8 +42,8 @@ DJ_CoM = DJ_CoM_DIP(z,p);
 % open-loop system state-space matrices
 % A_ol = [zeros(2) eye(2); -M\J_G zeros(2)];
 % B_ol = [zeros(2); M\eye(2)];
-A_ol = Alin_DIP(z,p);
-B_ol = Blin_DIP(z,p);
+A_ol = Alin_DIP(p);
+B_ol = Blin_DIP(p);
 
 C_2 = [0 0 0 0];
 D_2 = [1 0];

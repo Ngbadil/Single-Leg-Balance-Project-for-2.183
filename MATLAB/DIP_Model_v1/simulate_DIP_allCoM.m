@@ -1,4 +1,6 @@
 clear all; close all; clc;
+warning('off', 'MATLAB:singularMatrix');
+warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 
 %% USER INPUT %%
 
@@ -8,10 +10,15 @@ CoM_RATIO_RANGE = logspace(-1,1,n_points);
 JOINT_LIM_RANGE = [linspace(-60*pi/180, 0, n_points); fliplr(linspace(1*pi/180, 250*pi/180, n_points))]';
 % JOINT_LIM_RANGE = [linspace(-45*pi/180, 0, n_points); 125*pi/180*ones(1,npoints))]';
 
-TEST_COM = false;
-TEST_JOINTLIM = true;
+TEST_COM = true;
+TEST_JOINTLIM = false;
 
 % That's all. Run code for results. %
+
+%% PRECOMPUTE R %%
+fit_results = fitLQRzIPModel("processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat");
+R = fit_results.group.R_best;
+% R = diag([1/50^2, 1/50^2]); % for speed
 
 %% STANDING CoM HEIGHT PARAMETER SWEEP %%
 if TEST_COM == true
@@ -29,7 +36,7 @@ if TEST_COM == true
         ch = zeros(size(n));
         for j=1:n
             % Simulate mass ratio
-            [z,u,p] = simulate_DIP_CoM(CoM_RATIO_RANGE(i), [-20*pi/180, 125*pi/180], 'table_1_data_deidentified.csv',false, [0,0,0,0]);
+            [z,u,p] = simulate_DIP_CoM(CoM_RATIO_RANGE(i), [-20*pi/180, 125*pi/180], 'table_1_data_deidentified.csv',false, [0,0,0,0], R);
         
             % Get head and CoM position
             head_pos = head_pos_DIP(z,p);
@@ -87,7 +94,7 @@ if TEST_JOINTLIM == true
         hip_rms = zeros(size(n));
         for j=1:n
             % Simulate mass ratio
-            [z,u,p] = simulate_DIP_CoM(0, JOINT_LIM_RANGE(i,:), 'table_1_data_deidentified.csv',false, [0,0,0,0]);
+            [z,u,p] = simulate_DIP_CoM(0, JOINT_LIM_RANGE(i,:), 'table_1_data_deidentified.csv',false, [0,0,0,0], R);
         
             % Get head and CoM position
             head_pos = head_pos_DIP(z,p);

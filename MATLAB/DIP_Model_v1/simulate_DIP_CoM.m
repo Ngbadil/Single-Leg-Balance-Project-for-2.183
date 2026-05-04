@@ -1,4 +1,4 @@
-function [zout, uout, p] = simulate_DIP_CoM(MASS_RATIO, JOINT_LIM, BASE_PARTICIPANT_DATA, PLOT_GRAPHS, z_start)
+function [zout, uout, p] = simulate_DIP_CoM(MASS_RATIO, JOINT_LIM, BASE_PARTICIPANT_DATA, PLOT_GRAPHS, z_start, R)
     
     % setpath    % add AutoDerived, Modeling, Visualization folders to Matlab path
     
@@ -41,23 +41,26 @@ function [zout, uout, p] = simulate_DIP_CoM(MASS_RATIO, JOINT_LIM, BASE_PARTICIP
     
     tf   = 50;                          % simulation duration (s)
     
-    noise.motorNoiseLvL = 100;            % noise magnitude
+    noise.motorNoiseLvL = 1;            % noise magnitude
     noise.motorNoiseRatio = 1.6;        % ankle:hip noise ratio
     noise.noise_type = 'l';             % 'w' for gaussian white noise, 'l' for low pass (more noticeable)
     
     %% Compute LQR Gain
-    [A_num, B_num] = linearization_DIP(z_eq, u_eq, p);
     
     % Sanity check — should see two eigenvalues with positive real parts
     % disp('Open-loop eigenvalues:')
     % disp(eig(A_num))
     
-    % [Q,R] = evan'sfunction(jsldkja);
-    % controller.Q = Q;
-    % controller.R = R;
-    
-    controller.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
-    controller.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
+    % controller.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
+    % controller.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
+
+    if nargin < 6  
+        fit_results = fitLQRzIPModel("processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat");
+        controller.R = fit_results.group.R_best;
+    else
+        controller.R = R;
+    end
+    controller.Q = eye(4);
     
     %% Create Input Struct
     % Inputs:

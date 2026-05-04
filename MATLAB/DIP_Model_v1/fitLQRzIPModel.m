@@ -263,7 +263,7 @@ end
 
 
 %% Experimental curve to fit
-zip_exp = nanmean(group_trials, 2);
+zip_exp = mean(group_trials, 2, 'omitnan');
 f_exp = freq_bins(:);
 
 valid_idx = ~isnan(f_exp) & ~isnan(zip_exp);
@@ -662,7 +662,7 @@ if plot_results && run_participant_fit && ~isempty(participant_fit_results)
             trials_pid(VAFs_pid < VAF_min_threshold) = NaN;
         end
 
-        zip_pid_mean = nanmean(trials_pid, 2);
+        zip_pid_mean = mean(trials_pid, 2, 'omitnan');
 
         f_exp = freq_bins(:);
         valid_idx = ~isnan(f_exp) & ~isnan(zip_pid_mean);
@@ -710,7 +710,7 @@ end
 if plot_results && run_group_fit
 
     % Experimental group mean curve
-    zip_exp = nanmean(group_trials, 2);
+    zip_exp = mean(group_trials, 2, 'omitnan');
     f_exp = freq_bins(:);
 
     valid_idx = ~isnan(f_exp) & ~isnan(zip_exp);

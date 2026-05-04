@@ -33,7 +33,7 @@ z0   = [0.1; 0.05; 0; 0];           % small perturbation from upright, at rest
 
 tf   = 50;                          % simulation duration (s)
 
-noise.motorNoiseLvL = 100;            % noise magnitude
+noise.motorNoiseLvL = 1;            % noise magnitude
 noise.motorNoiseRatio = 1.6;        % ankle:hip noise ratio
 noise.noise_type = 'l';             % 'w' for gaussian white noise, 'l' for low pass (more noticeable)
 
@@ -44,12 +44,12 @@ noise.noise_type = 'l';             % 'w' for gaussian white noise, 'l' for low 
 disp('Open-loop eigenvalues:')
 disp(eig(A_num))
 
-% [Q,R] = evan'sfunction(jsldkja);
-% controller.Q = Q;
-% controller.R = R;
+% controller.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
+% controller.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
 
-controller.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
-controller.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
+fit_results = fitLQRzIPModel("processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat");
+controller.Q = eye(4);
+controller.R = fit_results.group.R_best;
 
 %% Create Input Struct
 % Inputs:
