@@ -28,7 +28,7 @@ for i = 1:1%size(modifiedParticipants,1)
 end
 
 z_eq = [0; 0; 0; 0];                % upright equilibrium [th1, th2, dth1, dth2]
-u_eq = [0; 0];
+u_eq = [0; 0];      %Input torque for each joint (two of them)
 z0   = [0.1; 0.05; 0; 0];           % small perturbation from upright, at rest
 
 tf   = 50;                          % simulation duration (s)
@@ -47,7 +47,9 @@ disp(eig(A_num))
 % controller.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
 % controller.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
 
-fit_results = fitLQRzIPModel("processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat");
+fit_results = fitLQRzIPModel2("processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat");
+%sweep_results = sweepArmAngles('processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat');
+%all_results = runAllGroups_coarse('processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat');
 controller.Q = eye(4);
 controller.R = fit_results.group.R_best;
 
