@@ -22,16 +22,16 @@ p   = parameters();                  % DIP parameters (no joint_lim or ground ne
 %Test parameters
 for i = 1:1%size(modifiedParticipants,1)
     % totalMass_kg, totalHeight_m, gender, plane, theta_rad
-    test = getLumpedParams_DIP_Ypose(modifiedParticipants.Mass_kg_(i),modifiedParticipants.Height_m(i),modifiedParticipants.Gender_1_M_2_F_(i),'frt',pi/4);
+    test = getLumpedParams_DIP_Ypose(modifiedParticipants.Mass_kg_(i),modifiedParticipants.Height_m(i),modifiedParticipants.Gender_1_M_2_F_(i),'sgt',pi/4);
 
     p(1) = test.L1; p(2)=test.L2;p(3) = test.c1; p(4)=test.c2; p(5)=test.m1; p(6)=test.m2; p(7)=test.j1; p(8)=test.j2;
 end
 
 z_eq = [0; 0; 0; 0];                % upright equilibrium [th1, th2, dth1, dth2]
 u_eq = [0; 0];
-z0   = [0.1; 0.05; 0; 0];           % small perturbation from upright, at rest
+z0   = [0.1; 0.1; 0; 0];           % small perturbation from upright, at rest
 
-tf   = 50;                          % simulation duration (s)
+tf   = 10;                          % simulation duration (s)
 
 noise.motorNoiseLvL = 1;            % noise magnitude
 noise.motorNoiseRatio = 1.6;        % ankle:hip noise ratio
@@ -47,9 +47,10 @@ disp(eig(A_num))
 % controller.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
 % controller.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
 
-fit_results = fitLQRzIPModel("processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat");
+% fit_results = fitLQRzIPModel("processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat");
 controller.Q = eye(4);
-controller.R = fit_results.group.R_best;
+% controller.R = fit_results.group.R_best;
+controller.R = diag([1/50^2, 1/50^2]); % for speed
 
 %% Create Input Struct
 % Inputs:

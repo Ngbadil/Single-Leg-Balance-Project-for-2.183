@@ -22,7 +22,7 @@ function [zout, uout, p] = simulate_DIP_CoM(MASS_RATIO, JOINT_LIM, BASE_PARTICIP
     %Test parameters
     for i = 1:1%size(modifiedParticipants,1)
         % totalMass_kg, totalHeight_m, gender, plane, theta_rad
-        test = getLumpedParams_DIP_Ypose(modifiedParticipants.Mass_kg_(i),modifiedParticipants.Height_m(i),modifiedParticipants.Gender_1_M_2_F_(i),'frt',pi/4);
+        test = getLumpedParams_DIP_Ypose(modifiedParticipants.Mass_kg_(i),modifiedParticipants.Height_m(i),modifiedParticipants.Gender_1_M_2_F_(i),'sgt',pi/4);
         
         % MASS RATIO ADJUSTMENT %
         if MASS_RATIO ~= 0
@@ -39,7 +39,7 @@ function [zout, uout, p] = simulate_DIP_CoM(MASS_RATIO, JOINT_LIM, BASE_PARTICIP
     % z0   = [0.1; 0.05; 0; 0];           % small perturbation from upright, at rest
     z0 = z_start;
     
-    tf   = 50;                          % simulation duration (s)
+    tf   = 10;                          % simulation duration (s)
     
     noise.motorNoiseLvL = 1;            % noise magnitude
     noise.motorNoiseRatio = 1.6;        % ankle:hip noise ratio
@@ -54,7 +54,7 @@ function [zout, uout, p] = simulate_DIP_CoM(MASS_RATIO, JOINT_LIM, BASE_PARTICIP
     % controller.Q = diag([1/0.17^2, 1/0.17^2, 1/1^2, 1/1^2]);  % ~10 deg tilt, 1 rad/s
     % controller.R = diag([1/50^2, 1/50^2]);                      % 50 Nm max torque
 
-    if nargin < 6  
+    if nargin < 6
         fit_results = fitLQRzIPModel("processed_zIP_results_sagittal_0.5_BW_square_VAF5.mat");
         controller.R = fit_results.group.R_best;
     else

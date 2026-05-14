@@ -18,11 +18,11 @@ g = 9.81;
 % Generate Vectors and Derivatives
 ihat = [1; 0; 0];
 jhat = [0; 1; 0];
-khat = cross(ihat,jhat);
-e1hat = sin(th1)*ihat + cos(th1)*jhat;                            % vector of first linkage
-e2hat = sin(th1 + th2)*ihat + cos(th1 + th2)*jhat;     % vector of second linkage
+khat = -cross(ihat,jhat);
+e1hat = -sin(th1)*ihat + cos(th1)*jhat;                            % vector of first linkage
+e2hat = -sin(th1 + th2)*ihat + cos(th1 + th2)*jhat;     % vector of second linkage
 
-rO= [0;0;0];                % foot position
+rO = [0;0;0];                % foot position
 rA = L1*e1hat;            % hip position
 rB = rA + L2*e2hat;       % head position
 r_m1= c1*e1hat;          % leg CoM position
@@ -114,8 +114,9 @@ ddq_sol = A \ b;
 F_O = simplify(subs(F_O, [ddth1; ddth2], ddq_sol));
 
 %% Get positions
+hip_pos  = rA(1:2);
 head_pos = rB(1:2);
-CoM_pos = rcm(1:2);
+CoM_pos  = rcm(1:2);
 
 %% Turn into functions (faster computations)
 matlabFunction(A,'file',['A_' name],'vars',{z p});
@@ -131,7 +132,6 @@ matlabFunction(J_CoM,  'file', ['J_CoM_'  name], 'vars', {z p});
 matlabFunction(DJ_CoM,  'file', ['DJ_CoM_'  name], 'vars', {z p});
 matlabFunction(F_O,  'file', ['F_O_'  name], 'vars', {z u p});
 matlabFunction(head_pos,'file',['head_pos_' name],'vars',{z p});
+matlabFunction(hip_pos,'file',['hip_pos_' name],'vars',{z p});
 matlabFunction(CoM_pos,'file',['CoM_pos_' name],'vars',{z p});
-
-
 
